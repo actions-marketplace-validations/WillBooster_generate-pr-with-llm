@@ -24,10 +24,10 @@ jobs:
       - name: Install dependencies
         run: bun install
       # Set up user settings on Git (optional)
-      # - name: Set up user settings on Git
-      #   run: |
-      #     git config user.name "WillBooster Bot"
-      #     git config user.email "bot@willbooster.com"
+      - name: Set up user settings on Git
+        run: |
+          git config user.name "WillBooster (Agent)"
+          git config user.email "agent@willbooster.com"
       - name: Generate PR with AI
         uses: WillBooster/gen-pr@v2
         with:
