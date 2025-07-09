@@ -108,8 +108,9 @@ ${resolutionPlan.plan}
 `.trim()
       : '';
   const issueFence = findDistinctFence(issueText);
+  const isAgentic = options.codingTool !== 'aider';
   const prompt = `
-Modify the code to resolve the following GitHub issue${planText ? ' based on the plan' : ''}.
+Modify the code to resolve the following GitHub issue${planText ? ' based on the plan' : ''}.${isAgentic ? ' After that, commit your changes with a message, following the Conventional Commits specification.' : ''}
 
 # Issue
 
@@ -188,15 +189,16 @@ ${planText}
   }
 
   // Try commiting changes because coding tool may fail to commit changes due to pre-commit hooks
+  const commitMessage = resolutionPlan?.commitMessage || `fix: Close #${options.issueNumber}`;
   await runCommand('git', ['add', '-A'], { ignoreExitStatus: true });
   if (
     (
-      await runCommand('git', ['commit', '-m', `fix: Close #${options.issueNumber}`], {
+      await runCommand('git', ['commit', '-m', commitMessage], {
         ignoreExitStatus: true,
       })
     ).status !== 0
   ) {
-    await runCommand('git', ['commit', '-m', `fix: Close #${options.issueNumber}`, '--no-verify'], {
+    await runCommand('git', ['commit', '-m', commitMessage, '--no-verify'], {
       ignoreExitStatus: true,
     });
   }
