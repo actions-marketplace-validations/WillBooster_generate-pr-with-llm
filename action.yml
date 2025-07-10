@@ -35,7 +35,7 @@ inputs:
   codex-extra-args:
     description: 'Additional arguments to pass to the codex command (nothing is always applied)'
     required: false
-    default: '--full-auto --quiet'
+    default: '--full-auto'
   test-command:
     description: 'Command to run after the coding tool applies changes. If it fails, the assistant will try to fix it.'
     required: false
