@@ -57,7 +57,6 @@
     "semantic-release": "24.2.6",
     "sort-package-json": "3.4.0",
     "typescript": "5.8.3",
-    "undici": "7.11.0",
     "yaml": "2.8.0",
     "yargs": "18.0.0"
   },
