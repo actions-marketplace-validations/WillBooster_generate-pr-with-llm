@@ -46,43 +46,43 @@ This feature is particularly useful for non-agentic coding tools like Aider.
 Gemini 2.5 Pro (`gemini/gemini-2.5-pro`) for planning and Aider for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model gemini/gemini-2.5-pro --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model gemini/gemini-2.5-pro --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
+npx --yes gen-pr@latest --issue-number 89 --planning-model gemini/gemini-2.5-pro --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model gemini/gemini-2.5-pro --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
 ```
 
 Claude Opus 4 on Bedrock (`bedrock/us.anthropic.claude-opus-4-20250514-v1:0`) for planning and Aider for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model bedrock/us.anthropic.claude-opus-4-20250514-v1:0 --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model bedrock/us.anthropic.claude-opus-4-20250514-v1:0 --test-cmd='yarn check-for-ai' --auto-test"
+npx --yes gen-pr@latest --issue-number 89 --planning-model bedrock/us.anthropic.claude-opus-4-20250514-v1:0 --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model bedrock/us.anthropic.claude-opus-4-20250514-v1:0 --test-cmd='yarn check-for-ai' --auto-test"
 ```
 
 Gemini 2.5 Pro (`gemini/gemini-2.5-pro`) for planning and Claude Code for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model gemini/gemini-2.5-pro --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool claude-code
+npx --yes gen-pr@latest --issue-number 89 --planning-model gemini/gemini-2.5-pro --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool claude-code
 ```
 
 o4-mini (`openai/o4-mini`) for planning and Codex for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model openai/o4-mini --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool codex
+npx --yes gen-pr@latest --issue-number 89 --planning-model openai/o4-mini --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool codex
 ```
 
 DeepSeek R1 on OpenRouter (`openrouter/deepseek/deepseek-r1-0528:free`) for planning and Gemini CLI for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model openrouter/deepseek/deepseek-r1-0528:free --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool gemini
+npx --yes gen-pr@latest --issue-number 89 --planning-model openrouter/deepseek/deepseek-r1-0528:free --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --coding-tool gemini
 ```
 
 Grok 4 (`xai/grok-4`) for planning and Aider for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model xai/grok-4 --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model gemini/gemini-2.5-pro --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
+npx --yes gen-pr@latest --issue-number 89 --planning-model xai/grok-4 --reasoning-effort high --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model gemini/gemini-2.5-pro --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
 ```
 
 Local Gemma 3n via Ollama (`ollama/gemma3n`) for planning and Aider for coding:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --planning-model ollama/gemma3n --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model ollama/gemma3n --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
+npx --yes gen-pr@latest --issue-number 89 --planning-model ollama/gemma3n --repomix-extra-args="--compress --remove-empty-lines --include 'src/**/*.ts'" --aider-extra-args="--model ollama/gemma3n --edit-format diff-fenced --test-cmd='yarn check-for-ai' --auto-test"
 ```
 
 #### Without Planning
@@ -90,19 +90,19 @@ npx --yes gen-pr --issue-number 89 --planning-model ollama/gemma3n --repomix-ext
 Claude Code:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --coding-tool claude-code
+npx --yes gen-pr@latest --issue-number 89 --coding-tool claude-code
 ```
 
 Codex:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --coding-tool codex
+npx --yes gen-pr@latest --issue-number 89 --coding-tool codex
 ```
 
 Gemini CLI:
 
 ```sh
-npx --yes gen-pr --issue-number 89 --coding-tool gemini
+npx --yes gen-pr@latest --issue-number 89 --coding-tool gemini
 ```
 
 #### For PR ([#103](https://github.com/WillBooster/gen-pr/pull/103))
@@ -110,7 +110,7 @@ npx --yes gen-pr --issue-number 89 --coding-tool gemini
 Codex:
 
 ```sh
-npx --yes gen-pr --issue-number 103 --coding-tool codex
+npx --yes gen-pr@latest --issue-number 103 --coding-tool codex
 ```
 
 ### Supported Model Format
