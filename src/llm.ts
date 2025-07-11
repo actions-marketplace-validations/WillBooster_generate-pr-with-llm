@@ -7,8 +7,10 @@ import { createOpenAI, type OpenAIResponsesProviderOptions } from '@ai-sdk/opena
 import type { LanguageModelV2 } from '@ai-sdk/provider';
 import { createXai } from '@ai-sdk/xai';
 import { generateText, type ModelMessage } from 'ai';
+import YAML from 'yaml';
 import { callV4ProviderApi } from './llmv4.js';
 import type { ReasoningEffort } from './types.js';
+import { yamlStringifyOptions } from './yaml.js';
 
 /**
  * Call LLM API using AI SDK 5
@@ -67,7 +69,7 @@ export async function callLlmApi(
           };
         } else if (provider === 'bedrock') {
           // The latest AI SDK doesn't work on Bedrock with reasoning.
-          console.log(
+          console.warn(
             `Note: The current AI SDK doesn't work on Bedrock with reasoning. Model ${modelName} will use default reasoning settings.`
           );
           // requestParams.providerOptions = {
@@ -99,16 +101,15 @@ export async function callLlmApi(
  * Log the result of an LLM API call
  */
 export function logResult(model: string, result: { text: string; usage?: unknown; finishReason?: string }): void {
-  console.log(
+  console.info(
     `${model}:`,
-    JSON.stringify(
+    YAML.stringify(
       {
         text: result.text,
         usage: result.usage,
         finishReason: result.finishReason,
       },
-      null,
-      2
+      yamlStringifyOptions
     )
   );
 }

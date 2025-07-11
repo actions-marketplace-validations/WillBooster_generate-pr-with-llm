@@ -97,7 +97,7 @@ export async function main(options: MainOptions): Promise<void> {
         options.repomixExtraArgs
       ))) ||
     undefined;
-  console.log('Resolution plan:', resolutionPlan);
+  console.info('Resolution plan:', resolutionPlan);
 
   const planText =
     resolutionPlan && 'plan' in resolutionPlan && resolutionPlan.plan
