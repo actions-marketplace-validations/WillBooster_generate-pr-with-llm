@@ -9,7 +9,7 @@ jobs:
   generate-pr:
     runs-on: ubuntu-latest
     # Only run if the label name includes 'ai-pr' and an issue number is available
-    if: contains(github.event.label.name, 'ai-pr') && github.event.issue.number != null
+    if: contains(github.event.label.name, 'ai-pr') && github.event.number != null
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -22,7 +22,7 @@ jobs:
       - name: Generate PR with AI
         uses: WillBooster/gen-pr@v2
         with:
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.number }}
           coding-tool: claude-code
           test-command: 'yarn check-for-ai'
           max-test-attempts: 5
