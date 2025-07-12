@@ -4,6 +4,9 @@ on:
   issues:
     types:
       - labeled
+  pull_request:
+    types:
+      - labeled
   workflow_dispatch:
 
 # If you want to use `secrets.GITHUB_TOKEN`, you need give the following permissions.
