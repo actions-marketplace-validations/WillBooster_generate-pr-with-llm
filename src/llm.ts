@@ -6,6 +6,7 @@ import { createVertex } from '@ai-sdk/google-vertex';
 import { createOpenAI, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import type { LanguageModelV2 } from '@ai-sdk/provider';
 import { createXai } from '@ai-sdk/xai';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { generateText, type ModelMessage } from 'ai';
 import YAML from 'yaml';
 import { callV4ProviderApi } from './llmv4.js';
@@ -21,12 +22,12 @@ export async function callLlmApi(
   reasoningEffort?: ReasoningEffort
 ): Promise<string> {
   try {
-    // Special handling for Ollama and OpenRouter using AI SDK v4
-    if (model.startsWith('ollama/') || model.startsWith('openrouter/')) {
+    // Special handling for Ollama using AI SDK v4
+    if (model.startsWith('ollama/')) {
       return await callV4ProviderApi(model, messages, reasoningEffort);
     }
 
-    const [modelInstance, provider, modelName] = getModelInstance(model);
+    const [modelInstance, provider, modelName] = getModelInstance(model, reasoningEffort);
 
     // Build the request parameters
     const requestParams: Parameters<typeof generateText>[0] = {
@@ -114,7 +115,7 @@ export function logResult(model: string, result: { text: string; usage?: unknown
   );
 }
 
-function getModelInstance(model: string): [LanguageModelV2, string, string] {
+function getModelInstance(model: string, reasoningEffort?: ReasoningEffort): [LanguageModelV2, string, string] {
   // Only support llmlite format (provider/model)
   if (!model.includes('/')) {
     console.error(`Model must be in format 'provider/model'. Got: ${model}`);
@@ -167,6 +168,25 @@ function getModelInstance(model: string): [LanguageModelV2, string, string] {
       return [grokProvider(modelName), provider, modelName];
     }
 
+    case 'openrouter': {
+      // cf. https://github.com/OpenRouterTeam/ai-sdk-provider
+      const openrouterProvider = createOpenRouter({
+        apiKey: process.env.OPENROUTER_API_KEY,
+        headers: {
+          'HTTP-Referer': 'https://github.com/WillBooster/gen-pr',
+          'X-Title': 'gen-pr',
+        },
+      });
+      const modelOptions = reasoningEffort
+        ? {
+            reasoning: {
+              effort: reasoningEffort,
+            },
+          }
+        : {};
+      return [openrouterProvider(modelName, modelOptions), provider, modelName];
+    }
+
     default:
       console.error(
         `Unsupported provider: ${provider}. Supported providers: openai, azure, google, anthropic, bedrock, vertex, grok, openrouter, ollama`
@@ -204,6 +224,10 @@ export function supportsReasoningOptions(provider: string, modelName: string): b
     case 'xai':
       // Grok: Grok 3 models support reasoning effort
       return /^grok-3/.test(modelName);
+
+    // We can always pass reasoningEffort to OpenRouter without errors.
+    case 'openrouter':
+      return true;
 
     default:
       return false;
