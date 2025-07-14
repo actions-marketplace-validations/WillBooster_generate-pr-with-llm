@@ -1,6 +1,7 @@
 import process from 'node:process';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { loadConfigFile } from './config.js';
 import {
   DEFAULT_AIDER_EXTRA_ARGS,
   DEFAULT_CLAUDE_CODE_EXTRA_ARGS,
@@ -13,8 +14,9 @@ import {
 import { main } from './main.js';
 import type { CodingTool, ReasoningEffort } from './types.js';
 
-// Parse command line arguments using yargs
+// Parse command line arguments using yargs (CLI options override config)
 const argv = await yargs(hideBin(process.argv))
+  .config(loadConfigFile())
   // Options same with the GitHub Actions workflow
   .option('issue-number', {
     alias: 'i',
