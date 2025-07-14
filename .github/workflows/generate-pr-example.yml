@@ -19,7 +19,7 @@ jobs:
   generate-pr:
     runs-on: ubuntu-latest
     # Only run if the label name includes 'ai-pr' and an issue number is available
-    if: contains(github.event.label.name, 'ai-pr') && github.event.number != null
+    if: contains(github.event.label.name, 'ai-pr') && (github.event.issue.number || github.event.number) != null
     steps:
       - uses: actions/checkout@v4
       # Set up an environment for AI coding tools
@@ -35,7 +35,7 @@ jobs:
         uses: WillBooster/gen-pr@v2
         with:
           # required options
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.issue.number || github.event.number }}
           # optional options
           coding-tool: aider
           planning-model: gemini/gemini-2.5-pro
