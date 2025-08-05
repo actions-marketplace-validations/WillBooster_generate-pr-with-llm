@@ -50,6 +50,20 @@ export interface MainOptions {
 
 const MAX_PR_BODY_LENGTH = 30000; // GitHub's limit is 65536, leave some buffer
 
+async function getBaseBranch(options: MainOptions) {
+  const { stdout: prViewResult } = await runCommand(
+    'gh',
+    ['pr', 'view', options.issueNumber.toString(), '--json', 'headRefName'],
+    { ignoreExitStatus: true }
+  );
+  try {
+    return prViewResult && JSON.parse(prViewResult).headRefName;
+  } catch {
+    const currentBranchResult = await runCommand('git', ['branch', '--show-current']);
+    return currentBranchResult.stdout.trim();
+  }
+}
+
 export async function main(options: MainOptions): Promise<void> {
   configureEnvVars();
 
@@ -107,7 +121,7 @@ export async function main(options: MainOptions): Promise<void> {
 ${resolutionPlan.plan}
 `.trim()
       : '';
-  const issueFence = findDistinctFence(issueText);
+  const issueFence = findDistinctFence(issueText, '~');
   const isAgentic = options.codingTool !== 'aider';
   const prompt = `
 Modify the code to resolve the following GitHub issue${planText ? ' based on the plan' : ''}.${isAgentic ? ' After that, commit your changes with a message, following the Conventional Commits specification.' : ''}
@@ -237,7 +251,7 @@ ${planText}
 ${truncateText(planText, (planText.length / (planText.length + assistantResponse.length)) * MAX_PR_BODY_LENGTH)}
 `;
   if (assistantResponse) {
-    const responseFence = findDistinctFence(assistantResponse);
+    const responseFence = findDistinctFence(assistantResponse, '~');
     prBody += `
 # ${toolName} Log
 
@@ -249,7 +263,12 @@ ${responseFence}`;
 
   if (!options.dryRun) {
     const repoName = getGitRepoName();
-    await runCommand('gh', ['pr', 'create', '--title', prTitle, '--body', prBody, '--repo', repoName]);
+    const baseBranch = await getBaseBranch(options);
+    const prArgs = ['pr', 'create', '--title', prTitle, '--body', prBody, '--repo', repoName];
+    if (baseBranch) {
+      prArgs.push('--base', baseBranch);
+    }
+    await runCommand('gh', prArgs);
   } else {
     console.info(ansis.yellow(`Would create PR with title: ${prTitle}`));
     console.info(
