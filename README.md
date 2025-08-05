@@ -143,9 +143,9 @@ You can create a YAML configuration file named `gen-pr.config.yml` or `gen-pr.co
 
 ```yaml
 repomix-extra-args: "--compress --remove-empty-lines --include 'src/**/*.ts'"
-aider-extra-args: "--model gemini/gemini-2.5-pro --edit-format diff-fenced --no-gitignore"
+aider-extra-args: '--model gemini/gemini-2.5-pro --edit-format diff-fenced --no-gitignore'
 coding-tool: claude-code
-test-command: "yarn check-for-ai"
+test-command: 'yarn check-for-ai'
 ```
 
 ### Supported Model Format
@@ -178,7 +178,7 @@ Each provider uses standard environment variables for authentication:
   - **Ollama**: `OLLAMA_BASE_URL` (default: `http://localhost:11434`), `OLLAMA_API_KEY` (optional)
 - Coding Tools
   - **Codex CLI**: `OPENAI_API_KEY`
-  - **Claude Code**: `ANTHROPIC_API_KEY`
+  - **Claude Code**: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
   - **Gemini CLI**: `GEMINI_API_KEY`
 
 ## License
