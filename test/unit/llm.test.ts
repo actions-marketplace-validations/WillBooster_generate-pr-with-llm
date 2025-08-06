@@ -49,7 +49,7 @@ describe('model reasoning support detection', () => {
 
     test('should correctly identify Bedrock Anthropic Claude models as supporting reasoning', () => {
       expect(supportsReasoningOptions('bedrock', 'anthropic.claude-opus-4-20250514-v1:0')).toBe(true);
-      expect(supportsReasoningOptions('bedrock', 'us.anthropic.claude-opus-4-20250514-v1:0')).toBe(true);
+      expect(supportsReasoningOptions('bedrock', 'us.anthropic.claude-opus-4-1-20250805-v1:0')).toBe(true);
       expect(supportsReasoningOptions('bedrock', 'anthropic.claude-sonnet-4-20250514-v1:0')).toBe(true);
       expect(supportsReasoningOptions('bedrock', 'us.anthropic.claude-sonnet-4-20250514-v1:0')).toBe(true);
       expect(supportsReasoningOptions('bedrock', 'anthropic.claude-3-7-sonnet-20250219-v1:0')).toBe(true);

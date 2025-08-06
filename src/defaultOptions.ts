@@ -1,5 +1,5 @@
-/** "--yes-always --no-check-update --no-show-release-notes" is always applied */
-export const DEFAULT_AIDER_EXTRA_ARGS = '--model gemini/gemini-2.5-pro --edit-format diff-fenced --no-gitignore';
+/** "--yes-always --no-check-update --no-gitignore --no-show-model-warnings --no-show-release-notes" is always applied */
+export const DEFAULT_AIDER_EXTRA_ARGS = '--model gemini/gemini-2.5-pro --edit-format diff-fenced';
 /** "--dangerously-skip-permissions --print" is always applied */
 export const DEFAULT_CLAUDE_CODE_EXTRA_ARGS = '--allowedTools Bash Edit Write';
 /** exec is always applied */
