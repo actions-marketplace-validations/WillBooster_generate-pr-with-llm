@@ -1,7 +1,7 @@
-import child_process from 'node:child_process';
 import ansis from 'ansis';
 import YAML from 'yaml';
 import { configureEnvVars } from './env.js';
+import { getBaseBranch, getCurrentBranch, getGitRepoName, getHeaderOfFirstCommit } from './git.js';
 import { createIssueInfo } from './issue.js';
 import { findDistinctFence } from './markdown.js';
 import { planCodeChanges } from './plan.js';
@@ -50,24 +50,6 @@ export interface MainOptions {
 
 const MAX_PR_BODY_LENGTH = 30000; // GitHub's limit is 65536, leave some buffer
 
-async function getBaseBranch(options: MainOptions): Promise<{ baseBranch: string; isPullRequest: boolean }> {
-  const { stdout: prViewResult } = await runCommand(
-    'gh',
-    ['pr', 'view', options.issueNumber.toString(), '--json', 'headRefName'],
-    { ignoreExitStatus: true }
-  );
-  try {
-    if (prViewResult) {
-      const prData = JSON.parse(prViewResult);
-      return { baseBranch: prData.headRefName, isPullRequest: true };
-    }
-  } catch {
-    // Not a PR or error parsing
-  }
-  const currentBranchResult = await runCommand('git', ['branch', '--show-current']);
-  return { baseBranch: currentBranchResult.stdout.trim(), isPullRequest: false };
-}
-
 export async function main(options: MainOptions): Promise<void> {
   configureEnvVars();
 
@@ -102,8 +84,9 @@ export async function main(options: MainOptions): Promise<void> {
     }
   }
 
-  // Check if this is a PR early to pass the info to other functions
-  const { isPullRequest } = await getBaseBranch(options);
+  const prBaseBranch = await getBaseBranch(options);
+  const isPullRequest = !!prBaseBranch;
+  const baseBranch = prBaseBranch || (await getCurrentBranch());
 
   const issueInfo = await createIssueInfo(options);
   const issueText = YAML.stringify(issueInfo, yamlStringifyOptions).trim();
@@ -146,16 +129,11 @@ ${planText}
 `.trim();
 
   const now = new Date();
-
-  // Get current branch name before creating new branch
-  const currentBranchResult = await runCommand('git', ['branch', '--show-current']);
-  const currentBranch = currentBranchResult.stdout.trim();
-
-  const branchName = `gen-pr-${options.issueNumber}-${options.codingTool}-${now.getFullYear()}_${getTwoDigits(now.getMonth() + 1)}${getTwoDigits(now.getDate())}_${getTwoDigits(now.getHours())}${getTwoDigits(now.getMinutes())}${getTwoDigits(now.getSeconds())}`;
+  const newBranchName = `gen-pr-${options.issueNumber}-${options.codingTool}-${now.getFullYear()}_${getTwoDigits(now.getMonth() + 1)}${getTwoDigits(now.getDate())}_${getTwoDigits(now.getHours())}${getTwoDigits(now.getMinutes())}${getTwoDigits(now.getSeconds())}`;
   if (!options.dryRun) {
-    await runCommand('git', ['switch', '-C', branchName]);
+    await runCommand('git', ['switch', '-C', newBranchName]);
   } else {
-    console.info(ansis.yellow(`Would create branch: ${branchName}`));
+    console.info(ansis.yellow(`Would create branch: ${newBranchName}`));
   }
 
   // Execute coding tool
@@ -231,13 +209,13 @@ ${planText}
     });
   }
   if (!options.dryRun) {
-    await runCommand('git', ['push', 'origin', branchName, '--no-verify']);
+    await runCommand('git', ['push', 'origin', newBranchName, '--no-verify']);
   } else {
-    console.info(ansis.yellow(`Would push branch: ${branchName} to origin`));
+    console.info(ansis.yellow(`Would push branch: ${newBranchName} to origin`));
   }
 
   // Create a PR using GitHub CLI
-  const prTitle = getHeaderOfFirstCommit(currentBranch) || commitMessage;
+  const prTitle = getHeaderOfFirstCommit(baseBranch) || commitMessage;
   let prBody = `Close #${options.issueNumber}`;
 
   if (options.planningModel) {
@@ -273,11 +251,8 @@ ${responseFence}`;
 
   if (!options.dryRun) {
     const repoName = getGitRepoName();
-    const { baseBranch } = await getBaseBranch(options);
     const prArgs = ['pr', 'create', '--title', prTitle, '--body', prBody, '--repo', repoName];
-    if (baseBranch) {
-      prArgs.push('--base', baseBranch);
-    }
+    prArgs.push('--base', baseBranch);
     await runCommand('gh', prArgs);
   } else {
     console.info(ansis.yellow(`Would create PR with title: ${prTitle}`));
@@ -302,24 +277,6 @@ async function reshimToDetectNewTools() {
 
 function getTwoDigits(value: number): string {
   return String(value).padStart(2, '0');
-}
-
-function getGitRepoName(): string {
-  const repoUrlResult = child_process.spawnSync('git', ['remote', 'get-url', 'origin'], {
-    encoding: 'utf8',
-    stdio: 'pipe',
-  });
-  const repoUrl = repoUrlResult.stdout.trim();
-  const repoMatch = repoUrl.match(/github\.com[/:]([\w-]+\/[\w-]+)(\.git)?$/);
-  return repoMatch ? repoMatch[1] : '';
-}
-
-function getHeaderOfFirstCommit(baseBranch: string): string {
-  const firstCommitResult = child_process.spawnSync('git', ['log', `${baseBranch}..HEAD`, '--reverse', '--pretty=%s'], {
-    encoding: 'utf8',
-    stdio: 'pipe',
-  });
-  return firstCommitResult.stdout.trim().split('\n')[0];
 }
 
 /**
