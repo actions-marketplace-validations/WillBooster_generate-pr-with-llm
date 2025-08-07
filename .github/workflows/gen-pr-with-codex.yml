@@ -8,7 +8,7 @@ on:
       - labeled
 jobs:
   test:
-    if: contains(github.event.label.name, 'gen-pr-all') || contains(github.event.label.name, 'gen-pr-claude')
+    if: contains(github.event.label.name, 'gen-pr-all')
     uses: WillBooster/reusable-workflows/.github/workflows/gen-pr.yml@main
     with:
       coding-tool: codex
