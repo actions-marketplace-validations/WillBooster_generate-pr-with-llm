@@ -136,7 +136,8 @@ ${planText}
   const now = new Date();
   const newBranchName = `gen-pr-${options.issueNumber}-${options.codingTool}-${now.getFullYear()}_${getTwoDigits(now.getMonth() + 1)}${getTwoDigits(now.getDate())}_${getTwoDigits(now.getHours())}${getTwoDigits(now.getMinutes())}${getTwoDigits(now.getSeconds())}`;
   if (!options.dryRun) {
-    await runCommand('git', ['switch', '-C', newBranchName]);
+    await runCommand('git', ['switch', baseBranch]);
+    await runCommand('git', ['switch', '--force-create', newBranchName]);
   } else {
     console.info(ansis.yellow(`Would create branch: ${newBranchName}`));
   }
