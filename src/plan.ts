@@ -3,9 +3,8 @@ import YAML from 'yaml';
 import { DEFAULT_REPOMIX_EXTRA_ARGS } from './defaultOptions.js';
 import { callLlmApi } from './llm.js';
 import { extractHeaderContents, findDistinctFence, trimCodeBlockFences } from './markdown.js';
-import { runCommand } from './spawn.js';
+import { parseCommandLineArgs, runCommand } from './spawn.js';
 import type { ReasoningEffort } from './types.js';
-import { parseCommandLineArgs } from './utils.js';
 import { yamlStringifyOptions } from './yaml.js';
 
 const REPOMIX_FILE_NAME = 'repomix.result';

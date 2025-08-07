@@ -1,11 +1,16 @@
 import ansis from 'ansis';
 import YAML from 'yaml';
 import { configureEnvVars } from './env.js';
-import { getBaseBranch, getCurrentBranch, getGitRepoName, getHeaderOfFirstCommit } from './git.js';
+import {
+  configureGitUserDetailsIfNeeded,
+  getBaseBranch,
+  getCurrentBranch,
+  getGitRepoName,
+  getHeaderOfFirstCommit,
+} from './git.js';
 import { createIssueInfo } from './issue.js';
 import { findDistinctFence } from './markdown.js';
 import { planCodeChanges } from './plan.js';
-import { configureGitUserDetailsIfNeeded } from './profile.js';
 import { runCommand } from './spawn.js';
 import { testAndFix } from './test.js';
 import { truncateText } from './text.js';

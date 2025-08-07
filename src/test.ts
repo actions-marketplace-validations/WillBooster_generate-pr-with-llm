@@ -2,11 +2,10 @@ import ansis from 'ansis';
 import type { MainOptions } from './main.js';
 import { findDistinctFence } from './markdown.js';
 import type { ResolutionPlan } from './plan.js';
-import { runCommand, spawnAsync } from './spawn.js';
+import { parseCommandLineArgs, runCommand, spawnAsync } from './spawn.js';
 import { buildAiderArgs } from './tools/aider.js';
 import { buildClaudeCodeArgs } from './tools/claudeCode.js';
 import { buildCodexArgs } from './tools/codex.js';
-import { parseCommandLineArgs } from './utils.js';
 
 export async function testAndFix(options: MainOptions, resolutionPlan?: ResolutionPlan): Promise<string> {
   const maxAttempts = options.maxTestAttempts;

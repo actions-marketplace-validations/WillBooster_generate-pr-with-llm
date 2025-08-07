@@ -2,7 +2,8 @@ import { isCI } from '../ci.js';
 import { DEFAULT_CLAUDE_CODE_EXTRA_ARGS } from '../defaultOptions.js';
 import type { MainOptions } from '../main.js';
 import type { ResolutionPlan } from '../plan.js';
-import { parseCommandLineArgs } from '../utils.js';
+
+import { parseCommandLineArgs } from '../spawn.js';
 
 /**
  * Builds the command line arguments for the npx claude-code command

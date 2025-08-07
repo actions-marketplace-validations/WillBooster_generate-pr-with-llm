@@ -2,8 +2,8 @@ import YAML from 'yaml';
 import type { MainOptions } from './main.js';
 import { findDistinctFence } from './markdown.js';
 import { runCommand } from './spawn.js';
+import { stripHtmlComments, stripLogSections } from './text.js';
 import type { GitHubComment, GitHubIssue, GitHubReviewComment, IssueInfo } from './types.js';
-import { stripHtmlComments, stripToolLogSections } from './utils.js';
 import { yamlStringifyOptions } from './yaml.js';
 
 export async function createIssueInfo(options: MainOptions): Promise<IssueInfo> {
@@ -40,7 +40,7 @@ async function fetchIssueData(
   const referencedNumbers = extractIssueReferences(allText);
 
   const rawBody = stripHtmlComments(issue.body);
-  const description = issue.url?.includes('/pull/') ? stripToolLogSections(rawBody) : rawBody;
+  const description = issue.url?.includes('/pull/') ? stripLogSections(rawBody) : rawBody;
   const issueInfo: IssueInfo = {
     author: issue.author.login,
     title: issue.title,
