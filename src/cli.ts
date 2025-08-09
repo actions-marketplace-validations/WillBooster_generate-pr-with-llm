@@ -11,10 +11,12 @@ import {
   DEFAULT_CODING_TOOL,
   DEFAULT_GEMINI_EXTRA_ARGS,
   DEFAULT_MAX_TEST_ATTEMPTS,
+  DEFAULT_NODE_RUNTIME,
   DEFAULT_REPOMIX_EXTRA_ARGS,
 } from './defaultOptions.js';
 import { main } from './main.js';
-import type { CodingTool, ReasoningEffort } from './types.js';
+import { normalizeNodeRuntime } from './spawn.js';
+import type { CodingTool, NodeRuntime, NodeRuntimeActual, ReasoningEffort } from './types.js';
 
 // Parse command line arguments using yargs (CLI options override config)
 const argv = await yargs(hideBin(process.argv))
@@ -107,6 +109,12 @@ const argv = await yargs(hideBin(process.argv))
     type: 'boolean',
     default: false,
   })
+  .option('node-runtime', {
+    description: 'Node.js runtime to use for running tools',
+    type: 'string',
+    choices: ['node', 'bun', 'npx', 'bunx'],
+    default: DEFAULT_NODE_RUNTIME,
+  })
   // Options only for this standalone tool --------------------
   .option('working-dir', {
     alias: 'w',
@@ -130,6 +138,9 @@ if (argv['working-dir']) {
   console.info(`Changed working directory to: ${process.cwd()}`);
 }
 
+// Normalize the runtime value (convert aliases to actual commands)
+const nodeRuntime: NodeRuntimeActual = normalizeNodeRuntime(argv['node-runtime'] as NodeRuntime);
+
 await main({
   aiderExtraArgs: argv['aider-extra-args'],
   claudeCodeExtraArgs: argv['claude-code-extra-args'],
@@ -138,6 +149,7 @@ await main({
   codingTool: argv['coding-tool'] as CodingTool,
   dryRun: argv['dry-run'],
   noBranch: argv['no-branch'],
+  nodeRuntime,
   twoStagePlanning: argv['two-staged-planning'],
   issueNumber: argv['issue-number'],
   maxTestAttempts: argv['max-test-attempts'],
