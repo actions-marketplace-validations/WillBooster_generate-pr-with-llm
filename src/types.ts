@@ -104,6 +104,9 @@ export interface GitHubIssue {
 export interface IssueComment {
   /** The comment author's GitHub username */
   author: string;
+  codeLocation?: string;
+  codeContent?: string;
+  reviewState?: string;
   /** The comment's content */
   body: string;
 }
@@ -131,6 +134,27 @@ export interface GitHubReviewComment {
   created_at: string;
   /** When the comment was updated */
   updated_at: string;
+}
+
+/**
+ * Represents a GitHub PR review (overall review with state)
+ */
+export interface GitHubReview {
+  /** The review's unique ID */
+  id: number;
+  /** The review's author */
+  user: {
+    /** The author's GitHub username */
+    login: string;
+  };
+  /** The review's content/body */
+  body: string;
+  /** The review state (APPROVED, COMMENTED, CHANGES_REQUESTED, etc.) */
+  state: string;
+  /** When the review was submitted */
+  submitted_at: string;
+  /** The commit SHA this review was submitted for */
+  commit_id: string;
 }
 
 /**
