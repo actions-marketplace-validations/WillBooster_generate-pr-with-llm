@@ -1,15 +1,10 @@
 import ansis from 'ansis';
 import YAML from 'yaml';
 import { configureEnvVars } from './env.js';
-import {
-  configureGitUserDetailsIfNeeded,
-  getBaseBranch,
-  getCurrentBranch,
-  getGitRepoName,
-  getHeaderOfFirstCommit,
-} from './git.js';
+import { configureGitUserDetailsIfNeeded, getBaseBranch, getCurrentBranch, getHeaderOfFirstCommit } from './git.js';
 import { createIssueInfo } from './issue.js';
 import { findDistinctFence } from './markdown.js';
+import { createPullRequest } from './octokit.js';
 import { planCodeChanges } from './plan.js';
 import { runCommand } from './spawn.js';
 import { testAndFix } from './test.js';
@@ -118,10 +113,9 @@ export async function main(options: MainOptions): Promise<void> {
   const planText = (resolutionPlan && 'plan' in resolutionPlan && resolutionPlan.plan) || '';
   const issueFence = findDistinctFence(issueText, '~');
   const isAgentic = options.codingTool !== 'aider';
-  const itemType = isPullRequest ? 'pull request' : 'issue';
-  const extraInstruction = isPullRequest ? ' Consider the comments on the pull request when making your changes.' : '';
+  const target = isPullRequest ? 'the comments on the following GitHub pull request' : 'the following GitHub issue';
   const prompt = `
-Modify the code to resolve the following GitHub ${itemType}${planText ? ' based on the plan' : ''}.${extraInstruction}${isAgentic ? ' After that, commit your changes with a message, following the Conventional Commits specification.' : ''}
+Modify the code to resolve ${target}${planText ? ' based on the plan' : ''}.${isAgentic ? ' After that, commit your changes with a message, following the Conventional Commits specification.' : ''}
 
 ## ${isPullRequest ? 'Pull Request' : 'Issue'}
 
@@ -227,12 +221,10 @@ ${planText}`
   }
 
   let toolResponse = toolResult.trim();
-  if (options.testCommand) {
-    if (options.dryRun) {
-      console.info(ansis.yellow(`Would run test command`));
-    } else {
-      toolResponse += await testAndFix(options, resolutionPlan);
-    }
+  if (options.dryRun) {
+    console.info(ansis.yellow(`Would run test command`));
+  } else {
+    toolResponse += await testAndFix(options, resolutionPlan);
   }
 
   // Try commiting changes because coding tool may fail to commit changes due to pre-commit hooks
@@ -272,7 +264,7 @@ ${planText}`
     }
   } else {
     const prTitle = getHeaderOfFirstCommit(baseBranch) || commitMessage;
-    let prBody = `Close #${options.issueNumber}`;
+    let prBody = isPullRequest ? '' : `Close #${options.issueNumber}`;
 
     if (options.planningModel) {
       prBody += `
@@ -309,16 +301,13 @@ ${responseFence}`;
 
     if (options.dryRun) {
       console.info(ansis.yellow(`Would create PR with title: ${prTitle}`));
-      console.info(
-        ansis.yellow(
-          `PR body would include the ${toolName.toLowerCase()} response and close ${itemType} #${options.issueNumber}`
-        )
-      );
     } else {
-      const repoName = getGitRepoName();
-      const prArgs = ['pr', 'create', '--title', prTitle, '--body', prBody, '--repo', repoName];
-      prArgs.push('--base', baseBranch);
-      await runCommand('gh', prArgs);
+      await createPullRequest({
+        title: prTitle,
+        body: prBody,
+        head: newBranchName,
+        base: baseBranch,
+      });
     }
   }
 

@@ -55,7 +55,7 @@ describe('createIssueInfo', () => {
       const result = await createIssueInfo(options);
 
       // Basic properties
-      expect(result.author).toBe('app/renovate');
+      expect(result.author).toBe('renovate[bot]');
       expect(result.title).toBe('chore(deps): pin dependency python to 3.13.3');
 
       // Description content
@@ -117,9 +117,9 @@ describe('createIssueInfo', () => {
       // Referenced issues
       expect(result.referenced_issues).toBeDefined();
       expect(result.referenced_issues?.length).toBe(1);
-      expect(result.referenced_issues?.[0].author).toBe('exKAZUu');
-      expect(result.referenced_issues?.[0].title).toBe('feat: print "Hi" (<- example issue for debugging gen-pr)');
-      expect(result.referenced_issues?.[0].code_changes).toBeUndefined(); // Referenced issues don't include diffs
+      expect(result.referenced_issues?.[0]?.author).toBe('exKAZUu');
+      expect(result.referenced_issues?.[0]?.title).toBe('feat: print "Hi" (<- example issue for debugging gen-pr)');
+      expect(result.referenced_issues?.[0]?.code_changes).toBeUndefined(); // Referenced issues don't include diffs
     },
     { timeout: TIMEOUT }
   );
@@ -141,7 +141,7 @@ describe('createIssueInfo', () => {
       const result = await createIssueInfo(options);
 
       // Basic properties
-      expect(result.author).toBe('app/github-actions');
+      expect(result.author).toBe('github-actions[bot]');
       expect(result.title).toBe('feat: Add Hello World step to action workflow');
 
       // Description content
@@ -232,7 +232,7 @@ describe('createIssueInfo', () => {
       // Referenced issues
       expect(result.referenced_issues).toBeDefined();
       expect(result.referenced_issues?.length).toBe(1);
-      expect(result.referenced_issues?.[0].title).toBe(
+      expect(result.referenced_issues?.[0]?.title).toBe(
         'feat: print "Hello World" (<- example issue for debugging gen-pr)'
       );
     },
@@ -299,8 +299,8 @@ describe('createIssueInfo', () => {
       // Referenced issues - should reference #89
       expect(result.referenced_issues).toBeDefined();
       expect(result.referenced_issues?.length).toBe(1);
-      expect(result.referenced_issues?.[0].title).toBe('feat: print "Hi" (<- example issue for debugging gen-pr)');
-      expect(result.referenced_issues?.[0].author).toBe('exKAZUu');
+      expect(result.referenced_issues?.[0]?.title).toBe('feat: print "Hi" (<- example issue for debugging gen-pr)');
+      expect(result.referenced_issues?.[0]?.author).toBe('exKAZUu');
 
       // The PR should show the change that adds console.log('Hi')
       expect(result.code_changes).toContain("+  console.log('Hi');");
