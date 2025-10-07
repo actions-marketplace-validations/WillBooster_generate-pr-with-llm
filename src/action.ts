@@ -5,8 +5,8 @@ import core from '@actions/core';
 import { loadConfigFile } from './config.js';
 import { DEFAULT_CODING_TOOL, DEFAULT_MAX_TEST_ATTEMPTS, DEFAULT_NODE_RUNTIME } from './defaultOptions.js';
 import { main } from './main.js';
-import { normalizeNodeRuntime } from './spawn.js';
-import type { CodingTool, NodeRuntime, NodeRuntimeActual, ReasoningEffort } from './types.js';
+import type { CodingTool, NodeRuntime, ReasoningEffort } from './types.js';
+import { validateMainOptions } from './utils/validation.js';
 
 const configOptions = loadConfigFile();
 
@@ -15,11 +15,11 @@ const issueNumber = core.getInput('issue-number', { required: true });
 const planningModel =
   core.getInput('planning-model', { required: false }) || (configOptions['planning-model'] as string);
 const twoStagePlanningInput =
-  core.getInput('two-staged-planning', { required: false }) || (configOptions['two-staged-planning'] as string);
+  core.getInput('two-staged-planning', { required: false }) || String(configOptions['two-staged-planning'] ?? '');
 const twoStagePlanning = twoStagePlanningInput !== 'false';
 const reasoningEffort = (core.getInput('reasoning-effort', { required: false }) ||
   (configOptions['reasoning-effort'] as string)) as ReasoningEffort | undefined;
-const dryRunInput = core.getInput('dry-run', { required: false }) || (configOptions['dry-run'] as string);
+const dryRunInput = core.getInput('dry-run', { required: false }) || String(configOptions['dry-run'] ?? '');
 const dryRun = dryRunInput === 'true';
 const codingTool = (core.getInput('coding-tool', { required: false }) ||
   (configOptions['coding-tool'] as string) ||
@@ -42,35 +42,20 @@ const maxTestAttempts = maxTestAttemptsInput
   : DEFAULT_MAX_TEST_ATTEMPTS;
 const removePattern =
   core.getInput('remove-pattern', { required: false }) || (configOptions['remove-pattern'] as string);
-const noBranchInput = core.getInput('no-branch', { required: false }) || (configOptions['no-branch'] as string);
+const noBranchInput = core.getInput('no-branch', { required: false }) || String(configOptions['no-branch'] ?? '');
 const noBranch = noBranchInput === 'true';
-const nodeRuntimeInput = (core.getInput('node-runtime', { required: false }) ||
+const verboseInput = core.getInput('verbose', { required: false }) || String(configOptions.verbose ?? '');
+const verbose = verboseInput === 'true';
+const nodeRuntime = (core.getInput('node-runtime', { required: false }) ||
   (configOptions['node-runtime'] as string) ||
   DEFAULT_NODE_RUNTIME) as NodeRuntime;
 
-if (reasoningEffort && !['low', 'medium', 'high'].includes(reasoningEffort)) {
-  console.error(
-    `Invalid reasoning-effort value: ${reasoningEffort}. Using default. Valid values are: low, medium, high`
-  );
-  process.exit(1);
-}
-
-if (!['aider', 'claude-code', 'codex-cli', 'gemini-cli'].includes(codingTool)) {
-  console.error(
-    `Invalid coding-tool value: ${codingTool}. Using default. Valid values are: aider, claude-code, codex-cli, gemini-cli`
-  );
-  process.exit(1);
-}
-
-if (nodeRuntimeInput && !['node', 'bun', 'npx', 'bunx'].includes(nodeRuntimeInput)) {
-  console.error(
-    `Invalid node-runtime value: ${nodeRuntimeInput}. Using default. Valid values are: node (npx) and bun (bunx)`
-  );
-  process.exit(1);
-}
-
-// Normalize the runtime value (convert aliases to actual commands)
-const nodeRuntime: NodeRuntimeActual = normalizeNodeRuntime(nodeRuntimeInput);
+// Validate all options using shared utility
+validateMainOptions({
+  reasoningEffort,
+  codingTool,
+  nodeRuntime,
+});
 
 // cf. https://github.com/cli/cli/issues/8441#issuecomment-1870271857
 fs.rmSync(path.join(os.homedir(), '.config', 'gh'), { force: true, recursive: true });
@@ -92,4 +77,5 @@ void main({
   repomixExtraArgs,
   testCommand,
   removePattern,
+  verbose,
 });

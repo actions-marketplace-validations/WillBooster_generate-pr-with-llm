@@ -7,14 +7,12 @@ import { createIssueInfo } from './issue.js';
 import { findDistinctFence } from './markdown.js';
 import { createPullRequest } from './octokit.js';
 import { planCodeChanges } from './plan.js';
-import { runCommand } from './spawn.js';
+import { normalizeNodeRuntime, runCommand } from './spawn.js';
 import { testAndFix } from './test.js';
 import { HEADING_OF_GEN_PR_METADATA, truncateText } from './text.js';
-import { buildAiderArgs } from './tools/aider.js';
-import { buildClaudeCodeArgs } from './tools/claudeCode.js';
-import { buildCodexArgs } from './tools/codex.js';
-import { buildGeminiArgs } from './tools/gemini.js';
-import type { CodingTool, NodeRuntimeActual, ReasoningEffort } from './types.js';
+import type { CodingTool, NodeRuntime, NodeRuntimeActual, ReasoningEffort } from './types.js';
+import { logVerboseOptions } from './utils/logging.js';
+import { createStandardRunOptions, getToolCommandAndArgs, getToolName } from './utils/toolRegistry.js';
 import { yamlStringifyOptions } from './yaml.js';
 
 /**
@@ -37,8 +35,8 @@ export interface MainOptions {
   dryRun: boolean;
   /** Do not create a new branch, commit changes directly to the base branch */
   noBranch: boolean;
-  /** Node.js runtime to use (already normalized, without aliases) */
-  nodeRuntime: NodeRuntimeActual;
+  /** Node.js runtime to use */
+  nodeRuntime: NodeRuntime;
   /** GitHub issue number to process */
   issueNumber: number;
   /** Maximum number of attempts to fix test failures */
@@ -53,12 +51,20 @@ export interface MainOptions {
   testCommand?: string;
   /** RegExp pattern to remove from issue and PR descriptions */
   removePattern?: string;
+  /** Print parsed options at start */
+  verbose?: boolean;
 }
 
 const MAX_PR_BODY_LENGTH = 30000; // GitHub's limit is 65536, leave some buffer
 
 export async function main(options: MainOptions): Promise<void> {
   configureEnvVars();
+
+  // Print parsed options if verbose flag is set
+  logVerboseOptions(options, options.verbose);
+
+  // Normalize the runtime value (convert aliases to actual commands)
+  const nodeRuntime: NodeRuntimeActual = normalizeNodeRuntime(options.nodeRuntime);
 
   if (options.dryRun) {
     console.info(ansis.yellow('Running in dry-run mode. No branches or PRs will be created.'));
@@ -161,37 +167,22 @@ ${planText}`
   let toolCommand: string;
   let toolError = '';
   let toolSuccess = true;
-  const toolName =
-    options.codingTool === 'aider'
-      ? 'Aider'
-      : options.codingTool === 'claude-code'
-        ? 'Claude Code'
-        : options.codingTool === 'codex-cli'
-          ? 'Codex CLI'
-          : 'Gemini CLI';
+  const toolName = getToolName(options.codingTool);
 
-  // Build tool configuration
-  let toolArgs: string[];
-  let command: string;
-  let runOpts: SpawnOptions & { ignoreExitStatus?: boolean } = {
-    env: { ...process.env, NO_COLOR: '1' },
-    ignoreExitStatus: true,
+  // Build tool configuration using registry
+  const {
+    command,
+    args: toolArgs,
+    runOptions,
+  } = getToolCommandAndArgs(options.codingTool, options, nodeRuntime, {
+    prompt,
+    resolutionPlan,
+  });
+
+  const runOpts: SpawnOptions & { ignoreExitStatus?: boolean } = {
+    ...createStandardRunOptions(),
+    ...runOptions,
   };
-
-  if (options.codingTool === 'aider') {
-    toolArgs = buildAiderArgs(options, { prompt: prompt, resolutionPlan });
-    command = 'aider';
-  } else if (options.codingTool === 'claude-code') {
-    toolArgs = buildClaudeCodeArgs(options, { prompt: prompt, resolutionPlan });
-    command = options.nodeRuntime;
-    runOpts = { ...runOpts, stdio: 'inherit' };
-  } else if (options.codingTool === 'codex-cli') {
-    toolArgs = buildCodexArgs(options, { prompt: prompt, resolutionPlan });
-    command = options.nodeRuntime;
-  } else {
-    toolArgs = buildGeminiArgs(options, { prompt: prompt, resolutionPlan });
-    command = options.nodeRuntime;
-  }
 
   toolCommand = buildToolCommandString(command, toolArgs, prompt);
 
