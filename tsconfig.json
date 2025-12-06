@@ -6,8 +6,9 @@
     "erasableSyntaxOnly": true,
     "esModuleInterop": true,
     "importHelpers": false,
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noUncheckedIndexedAccess": true,
     "outDir": "dist",
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -16,5 +17,6 @@
     "target": "ES2022",
     "typeRoots": ["./node_modules/@types", "./@types"]
   },
-  "include": ["scripts/**/*", "src/**/*", "tests/**/*"]
+  "exclude": ["test/fixtures", "packages/*/test/fixtures"],
+  "include": ["scripts/**/*", "src/**/*", "test/**/*"]
 }

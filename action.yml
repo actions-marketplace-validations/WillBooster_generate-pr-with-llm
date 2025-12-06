@@ -1,35 +1,98 @@
-name: 'Generate PR with LLM'
-description: 'A GitHub Action that generates pull requests using LLMs.'
+name: 'Generate PR with AI'
+description: 'A GitHub Action that generates pull requests using AI (LLM).'
 author: 'WillBooster Inc.'
 
-# Define the inputs for your action
 inputs:
   issue-number:
     description: 'The issue (or PR) number to reference when generating the PR'
     required: true
-  model:
-    description: 'LLM model to use for selecting files to be modified'
+  planning-model:
+    description: 'LLM to use for planning code changes. Must use llmlite format: provider/model (e.g., openai/gpt-4.1, azure/gpt-4.1, gemini/gemini-2.5-pro, anthropic/claude-4-sonnet-latest, bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0, vertex/gemini-2.5-pro)'
     required: false
+  two-staged-planning:
+    description: 'Enable two-staged planning: first select relevant files, then generate detailed implementation plans (increases LLM cost but improves code quality)'
+    required: false
+    default: 'true'
   reasoning-effort:
     description: 'Constrains effort on reasoning for reasoning models. Supported values are low, medium, and high. Reducing reasoning effort can result in faster responses and fewer tokens used.'
     required: false
-  aider-extra-args:
-    description: 'Additional arguments to pass to the aider command (e.g., "--model gemini/gemini-2.5-pro-preview-03-25")'
+  coding-tool:
+    description: 'Coding tool to use for making changes (aider, claude-code, codex-cli or gemini-cli)'
     required: false
+    default: 'aider'
   repomix-extra-args:
-    description: 'Extra arguments for repomix when generating context (e.g., "--ignore **/*.{json,md,out,sql},*ignore,.env*")'
+    description: 'Extra arguments for repomix when generating context for planning'
     required: false
+    default: '--compress --remove-empty-lines --include "src/**/*.{ts,tsx},**/*.md"'
+  aider-extra-args:
+    description: 'Additional arguments to pass to Aider ("--yes-always --no-check-update --no-show-release-notes" is always applied)'
+    required: false
+    default: '--model gemini/gemini-2.5-pro --edit-format diff-fenced'
+  claude-code-extra-args:
+    description: 'Additional arguments to pass to Claude Code ("--dangerously-skip-permissions --print" is always applied)'
+    required: false
+    default: '--allowedTools Bash Edit Write'
+  codex-extra-args:
+    description: 'Additional arguments to pass to Codex CLI (nothing is always applied)'
+    required: false
+    default: '--full-auto'
+  gemini-extra-args:
+    description: 'Additional arguments to pass to Gemini CLI ("--yolo" is always applied)'
+    required: false
+    default: ''
+  test-command:
+    description: 'Command to run after the coding tool applies changes. If it fails, the assistant will try to fix it.'
+    required: false
+  max-test-attempts:
+    description: 'Maximum number of attempts to fix test failures'
+    required: false
+    default: '5'
   dry-run:
     description: 'Run without making actual changes (no branch creation, no PR)'
     required: false
     default: 'false'
+  remove-pattern:
+    description: 'RegExp pattern to remove from issue and PR descriptions'
+    required: false
+  verbose:
+    description: 'Print parsed options at start'
+    required: false
+    default: 'false'
 
-# Define the runs configuration
 runs:
-  using: 'node20'
-  main: 'dist/action.js'
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: 24.11.1
+        package-manager-cache: false
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+    - name: Install dependencies
+      run: bun install --production
+      working-directory: ${{ github.action_path }}
+      shell: bash
+    - name: Run action
+      run: bun ${{ github.action_path }}/dist/action.js
+      shell: bash
+      env:
+        INPUT_ISSUE-NUMBER: ${{ inputs.issue-number }}
+        INPUT_PLANNING-MODEL: ${{ inputs.planning-model }}
+        INPUT_TWO-STAGED-PLANNING: ${{ inputs.two-staged-planning }}
+        INPUT_REASONING-EFFORT: ${{ inputs.reasoning-effort }}
+        INPUT_CODING-TOOL: ${{ inputs.coding-tool }}
+        INPUT_REPOMIX-EXTRA-ARGS: ${{ inputs.repomix-extra-args }}
+        INPUT_AIDER-EXTRA-ARGS: ${{ inputs.aider-extra-args }}
+        INPUT_CLAUDE-CODE-EXTRA-ARGS: ${{ inputs.claude-code-extra-args }}
+        INPUT_CODEX-EXTRA-ARGS: ${{ inputs.codex-extra-args }}
+        INPUT_GEMINI-EXTRA-ARGS: ${{ inputs.gemini-extra-args }}
+        INPUT_TEST-COMMAND: ${{ inputs.test-command }}
+        INPUT_MAX-TEST-ATTEMPTS: ${{ inputs.max-test-attempts }}
+        INPUT_DRY-RUN: ${{ inputs.dry-run }}
+        INPUT_REMOVE-PATTERN: ${{ inputs.remove-pattern }}
+        INPUT_VERBOSE: ${{ inputs.verbose }}
 
-# Add branding to make your action stand out in the marketplace
 branding:
   icon: 'git-pull-request'
   color: 'blue'
